@@ -17,7 +17,7 @@ sock.connect(server_address)
 data = sock.recv(DEFAULT_BUFLEN)
 text = data.decode('utf-8')
 
-print('\nAvailable files to download:\n',text)
+print(f'\nAvailable files to download:\n{text}')
 print('--------------------------------')
 
 # User input
