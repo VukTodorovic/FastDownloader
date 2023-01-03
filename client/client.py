@@ -8,6 +8,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # Connect the socket to the server
 server_address = ('localhost', 1337)
 print('connecting to {} port {}'.format(*server_address))
+print('--------------------------------')
 sock.connect(server_address)
 
 
@@ -15,7 +16,7 @@ sock.connect(server_address)
 data = sock.recv(DEFAULT_BUFLEN)
 text = data.decode('utf-8')
 
-print('Available files to download:\n{}'.format(text))
+print('\nAvailable files to download:\n{}'.format(text))
 print('--------------------------------')
 
 # User input
