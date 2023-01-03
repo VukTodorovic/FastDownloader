@@ -39,7 +39,7 @@ try:
     
     # Checks if selected filename exists on the server
     if filename not in FILE_NAMES:
-        connection.sendall('Wrong input', 'utf-8')
+        connection.sendall(bytes('Wrong input', 'utf-8'))
         sys.exit()
 
     print('sending file {} to the client'.format(filename))
