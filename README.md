@@ -1,8 +1,7 @@
 # FastDownloader
 
 ## Description
-Fast download of files through multiple parallel TCP connections
-Project features fast download of files from server through multiple concurrent TCP connections. Server can serve multiple clients at the same time. Client and Server are both implemented in Python.
+Fast download of files through multiple parallel TCP connections. Project features fast download of files from server through multiple concurrent TCP connections. Server can serve multiple clients at the same time. Client and Server are both implemented in Python.
 
 ## Workflow
 - Client handshakes with server that is listening on port 1337
@@ -17,13 +16,13 @@ Project features fast download of files from server through multiple concurrent 
 - Server processes the request:
     - Server validates the input and in case of wrong input responds with:
     ```
-    "WRONG_INPUT"
+    WRONG_INPUT
     ```
     - Server calculates how many TCP streams are required depending on file size
-    - Server opens calculated amount of sockets suing ports chosen randomly from free ports pool
+    - Server opens calculated amount of sockets using ports chosen randomly from free ports pool
     - Server responds with connection requirements in following format:
     ```
-    "ACCEPTED N M PORT_1 PORT_2 ... PORT_N-1 PORT_N"
+    ACCEPTED N M PORT_1 PORT_2 ... PORT_N-1 PORT_N
     ```
     where: <br />
     **ACCEPTED** means that request is accepted <br />
@@ -34,7 +33,7 @@ Project features fast download of files from server through multiple concurrent 
 - Client creates N number of threads that connect to N ports provided by server
 - Server is reading a file and sending chunks concurrently over N TCP streams in following format:
 ```
-*K BYTES*
+K BYTES
 ```
 where: <br />
 **K** is ordinal number of data chunk <br />
