@@ -15,7 +15,7 @@ Project features fast download of files from server through multiple concurrent 
 ```
 - Client sends name of the file wanted for download
 - Server processes the request:
-    - Server validates the input and responds with
+    - Server validates the input and in case of wrong input responds with:
     ```
     "WRONG_INPUT"
     ```
@@ -38,7 +38,7 @@ Project features fast download of files from server through multiple concurrent 
 ```
 where: <br />
 **K** is ordinal number of data chunk <br />
-**BYTES** is a chunk of bytes that is being transmitted
+**BYTES** is a chunk of bytes that is being transmitted <br />
 - Client gets chunks of thata from server and writes them to a file in correct order. 
 - When the file is fully downloaded all sockets are closed and client program is terminated
 
