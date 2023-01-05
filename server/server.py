@@ -14,7 +14,6 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Bind the socket to the port
 server_address = ('localhost', 1337)
-# print(f'Server is listening on {server_address[0]}:{server_address[1]}...'.format(*server_address))
 print(f'Server is listening on {server_address[0]}:{server_address[1]}...')
 sock.bind(server_address)
 
@@ -32,27 +31,28 @@ def client_handler(client_socket, client_address):
         startupMessage += str(x) + ') ' + filename + '\n'
         x+=1
 
-    client_socket.sendall(bytes(startupMessage, 'utf-8'))
+    client_socket.sendall(startupMessage.encode())
 
     # Receives client input
     data = client_socket.recv(DEFAULT_BUFLEN)
-    filename = data.decode('utf-8')
+    filename = data.decode()
     print('received {}'.format(filename))
 
     # Checks if selected filename exists on the server
     if filename not in FILE_NAMES:
-        client_socket.sendall(bytes('Wrong input', 'utf-8'))
+        client_socket.sendall('WRONG_INPUT'.encode())
         
     else:
-        print(f'sending file {filename} to the client')
+        client_socket.sendall('ACCEPTED'.encode())
+        # print(f'sending file {filename} to the client')
 
-        # Read all bytes into variable
-        file = open(filename, 'rb')
-        fileBytes = file.read()
-        file.close()
+        # # Read all bytes into variable
+        # file = open(filename, 'rb')
+        # fileBytes = file.read()
+        # file.close()
 
-        # Send file bytes over socket
-        client_socket.sendall(fileBytes)
+        # # Send file bytes over socket
+        # client_socket.sendall(fileBytes)
     
 
 
