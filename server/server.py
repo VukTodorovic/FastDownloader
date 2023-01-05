@@ -6,6 +6,7 @@ DEFAULT_BUFLEN = 1024
 MAX_CLIENTS = 10
 FILE_NAMES = ["test.txt", "CaleDoktorNauka.c", "test_slika.png"]
 
+killSwitch = 0 # Just for testing
 
 
 # Create a TCP/IP socket
@@ -28,7 +29,7 @@ def client_handler(client_socket, client_address):
     startupMessage = ''
     x = 1
     for filename in FILE_NAMES:
-        startupMessage += str(x) + ')' + filename + '\n'
+        startupMessage += str(x) + ') ' + filename + '\n'
         x+=1
 
     client_socket.sendall(bytes(startupMessage, 'utf-8'))
@@ -52,25 +53,28 @@ def client_handler(client_socket, client_address):
 
         # Send file bytes over socket
         client_socket.sendall(fileBytes)
-
-    # JUST FOR TESTING
-    sock.close()
-    sys.exit()
     
 
 
 # The infinite loop to accept and handle incoming connections
-while True:
+while sock:
     # Wait for a connection
     print('Waiting for a connection...')
     client_socket, client_address = sock.accept()
+
     print('connection from', client_address)
+    killSwitch += 1
 
     # Create a new thread to handle the client
     client_thread = threading.Thread(target=client_handler, args=(client_socket, client_address))
 
-    # Start the client thread
+    # Start and join the client thread
     client_thread.start()
+    client_thread.join()
+
+    # JUST FOR TESTING
+    if killSwitch == 1:
+        break
 
 
-# sock.close() <-- Treba ovde da se uradi posle while-a
+sock.close()

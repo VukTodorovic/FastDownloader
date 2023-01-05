@@ -28,13 +28,14 @@ sock.sendall(bytes(fileName, 'utf-8'))
 
 # Receive and print the response from the server
 data = sock.recv(DEFAULT_BUFLEN)
-text = data.decode('utf-8')
-print('Server response:', text)
+if data == b'Wrong input':
+    text = data.decode('utf-8')
+    print(f'Server response:\n{text}')
+else:
+    print(f'Server response:\n{data}')
 
-# Make new file
+# Write bytes to new file
 file = open(fileName, 'wb')
-
-# Write data to new file
 file.write(data)
 
 # Close the connection
