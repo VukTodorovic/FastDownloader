@@ -1,4 +1,5 @@
 import socket
+import sys
 
 DEFAULT_BUFLEN = 1024
 
@@ -13,30 +14,36 @@ print('--------------------------------')
 sock.connect(server_address)
 
 
-# Receive all available file names
-data = sock.recv(DEFAULT_BUFLEN)
-text = data.decode('utf-8')
-
-print(f'\nAvailable files to download:\n{text}')
+# Receive and print all available file names
+response = sock.recv(DEFAULT_BUFLEN).decode()
+print(f'\nAvailable files to download:\n{response}')
 print('--------------------------------')
 
-# User input
+# Get user input and send to the server
 fileName = input('Choose file name: ')
-
-# Send the message to the server
-sock.sendall(bytes(fileName, 'utf-8'))
+sock.sendall(fileName.encode())
 
 # Receive and print the response from the server
-data = sock.recv(DEFAULT_BUFLEN)
-if data == b'Wrong input':
-    text = data.decode('utf-8')
-    print(f'Server response:\n{text}')
-else:
-    print(f'Server response:\n{data}')
+response = sock.recv(DEFAULT_BUFLEN).decode()
+print(f'Server response:\n{response}')
 
-# Write bytes to new file
-file = open(fileName, 'wb')
-file.write(data)
+# If file doesn't exist on server
+if response == 'Wrong input':
+    sock.close()
+    sys.exit()
+
+# If request is accepted process connection requirements
+
 
 # Close the connection
 sock.close()
+
+
+
+
+
+
+
+# Write bytes to new file
+# file = open(fileName, 'wb')
+# file.write(data)

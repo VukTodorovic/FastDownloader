@@ -1,3 +1,37 @@
 # FastDownloader
+
 ## Description
 Fast download of files through multiple parallel TCP connections
+Project features fast download of files from server through multiple concurrent TCP connections. Server can serve multiple clients at the same time. Client and Server are both implemented in Python.
+
+## Workflow
+- Client handshakes with server that is listening on port 1337
+- Server responds with available files in format:
+    1) file1.ext
+    2) file2.ext
+    3) file3.ext
+    ...
+- Client sends name of the file wanted for download
+- Server processes the request:
+    - Server validates the input and responds with 'WRONG_INPUT' if file doesn't exist
+    - Server calculates how many TCP streams are required depending on file size
+    - Server opens calculated amount of sockets suing ports chosen randomly from free ports pool
+    - Server responds with connection requirements in following format:
+        *"ACCEPTED N M PORT_1 PORT_2 ... PORT_N-1 PORT_N"*
+    where:
+    *ACCEPTED* means that request is accepted
+    *N* is number of ports that the client need to connect to
+    *M* is number of data chunks that will be transmitted
+    *PORT_1 ... PORT_N* represents exact port numbers for connection
+    **Note**: Chunk size is constant 1024 bytes
+- Client creates N number of threads that connect to N ports provided by server
+- Server is reading a file and sending chunks concurrently over N TCP streams in following format:
+    *K BYTES*
+where:
+*K* is ordinal number of data chunk
+*BYTES* is a chunk of bytes that is being transmitted
+- Client gets chunks of thata from server and writes them to a file in correct order. 
+- When the file is fully downloaded all sockets are closed and client program is terminated
+
+## Development notes
+- Server could send file using round robin algorithm but using threads only for *socket.sendall()* since it's a bloking function
