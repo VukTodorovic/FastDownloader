@@ -1,7 +1,7 @@
 # FastDownloader
 
 ## Description
-Fast download of files through multiple parallel TCP connections. Project features fast download of files from server through multiple concurrent TCP connections. Server can serve multiple clients at the same time. Client and Server are both implemented in Python.
+Project features fast download of files from server through multiple concurrent TCP connections. Server can serve multiple clients at the same time. Client and Server are both implemented in Python.
 
 ## Workflow
 - Client handshakes with server that is listening on port 1337
