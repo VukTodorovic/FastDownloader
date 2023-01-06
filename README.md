@@ -47,11 +47,15 @@ where: <br />
 - Num of streams: 1 - 8
 - Calculate num of streams:
 ```
-1. < 10MB
-2. 10MB - 50MB
-3. 50MB - 100MB
-5. 100MB - 250MB
-6. 400MB - 700MB
-7. 700MB - 1GB
-8. > 1GB
+1.) < 10MB
+2.) 10MB - 50MB
+3.) 50MB - 100MB
+4.) 100MB - 250MB
+5.) 250MB - 400MB
+6.) 400MB - 700MB
+7.) 700MB - 1GB
+8.) > 1GB
 ```
+- Authentication ??
+- On Raspberry limited to 2GB because it is a 32bit operating system
+- 49152 to 65535 temporary port range
