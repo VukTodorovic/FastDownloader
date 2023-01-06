@@ -43,3 +43,15 @@ where: <br />
 
 ## Development notes
 - Server could send file using round robin algorithm but using threads only for *socket.sendall()* since it's a bloking function
+- Formula: M = size_in_bytes / 1000 + 1
+- Num of streams: 1 - 8
+- Calculate num of streams:
+```
+1. < 10MB
+2. 10MB - 50MB
+3. 50MB - 100MB
+5. 100MB - 250MB
+6. 400MB - 700MB
+7. 700MB - 1GB
+8. > 1GB
+```

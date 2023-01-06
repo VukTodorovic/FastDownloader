@@ -35,6 +35,9 @@ if response == 'Wrong input':
 # If request is accepted process connection requirements
 
 
+# Client gets chunks of data and writes them to a file
+
+
 # Close the connection
 sock.close()
 
