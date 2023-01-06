@@ -1,12 +1,14 @@
 import socket
 import threading
 import sys
+import random
 
 DEFAULT_BUFLEN = 1024
 MAX_CLIENTS = 10
-FILE_NAMES = ["test.txt", "CaleDoktorNauka.c", "test_slika.png"]
+FILE_NAMES = ["test.txt", "CaleDoktorNauka.c", "test_slika.png", "south_park.mkv"]
 
 killSwitch = 0 # Just for testing
+usedPorts = []
 
 
 # Create a TCP/IP socket
@@ -43,16 +45,72 @@ def client_handler(client_socket, client_address):
         client_socket.sendall('WRONG_INPUT'.encode())
         
     else:
-        client_socket.sendall('ACCEPTED'.encode())
-        # print(f'sending file {filename} to the client')
+        # Calculate file size
+        file = open(filename, 'rb')
+        fileSize = 0
+        chunk = file.read(1024)
+        while chunk:
+            fileSize += len(chunk)
+            chunk = file.read(1024)
+        file.close()
+        
+        # Calculate number of data chunks (M)
+        chunkAmount = int(fileSize / 1000) + 1
+
+        # Calculate number of sockets (N)
+        socketAmount = 0
+        if fileSize < 10*1024*1024: # <10MB
+            socketAmount = 1
+        elif fileSize < 50*1024*1024: # <50MB
+            socketAmount = 2
+        elif fileSize < 100*1024*1024: # <100MB
+            socketAmount = 3
+        elif fileSize < 250*1024*1024: # <250MB
+            socketAmount = 4
+        elif fileSize < 400*1024*1024: # <400MB
+            socketAmount = 5
+        elif fileSize < 700*1024*1024: # <700MB
+            socketAmount = 6
+        elif fileSize < 1000*1024*1024: # <1GB
+            socketAmount = 7
+        else: # >1GB
+            socketAmount = 8
+
+        # Make list of ports for data transfer
+        portNumbers = []
+        for i in range(socketAmount):
+            port = random.randint(49152, 65535)
+            while(port in usedPorts):
+                port = random.randint(49152, 65535)
+            portNumbers.append(port)
+        
+        # Listen on all ports for client to connect
+        portsConnected = []
+
+        # Funtion for thread
+        def waitForConnection(portNumber):
+            print('123') # When connected change bool to True
+
+        # Calling threads
+        for portNumber in portNumbers:
+            portsConnected.append(False)
+            transfer_thread = threading.Thread(target=waitForConnection, args=(portNumber))
+            transfer_thread.start()
+            transfer_thread.join()
+
+        # while 
+
+        # Accept download an respond with connection data
+        response = f'ACCEPTED {socketAmount} {chunkAmount}'
+        for portNumber in portNumbers:
+            response += ' ' + str(portNumber)
+
+        client_socket.sendall(response.encode())
 
         # # Read all bytes into variable
         # file = open(filename, 'rb')
         # fileBytes = file.read()
         # file.close()
-
-        # # Send file bytes over socket
-        # client_socket.sendall(fileBytes)
     
 
 
