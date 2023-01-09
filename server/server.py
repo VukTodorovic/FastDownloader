@@ -2,6 +2,7 @@ import socket
 import threading
 import sys
 import random
+import time
 
 DEFAULT_BUFLEN = 1024
 MAX_CLIENTS = 10
@@ -78,27 +79,12 @@ def client_handler(client_socket, client_address):
 
         # Make list of ports for data transfer
         portNumbers = []
+        clientSockets = []
         for i in range(socketAmount):
             port = random.randint(49152, 65535)
             while(port in usedPorts):
                 port = random.randint(49152, 65535)
             portNumbers.append(port)
-        
-        # Listen on all ports for client to connect
-        portsConnected = []
-
-        # Funtion for thread
-        def waitForConnection(portNumber):
-            print('123') # When connected change bool to True
-
-        # Calling threads
-        for portNumber in portNumbers:
-            portsConnected.append(False)
-            transfer_thread = threading.Thread(target=waitForConnection, args=(portNumber))
-            transfer_thread.start()
-            transfer_thread.join()
-
-        # while 
 
         # Accept download an respond with connection data
         response = f'ACCEPTED {socketAmount} {chunkAmount}'
@@ -106,6 +92,84 @@ def client_handler(client_socket, client_address):
             response += ' ' + str(portNumber)
 
         client_socket.sendall(response.encode())
+        
+        # Listen on all ports for client to connect
+        portsConnected = []
+
+        # Funtion for thread
+        def waitForConnection(portNumber, listPosition):
+            # Create a TCP/IP socket
+            signleStream = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            streamAddress = ('localhost', portNumber)
+            signleStream.bind(streamAddress)
+            print(f'Listening stream on port: {portNumber}')
+            signleStream.listen(1)
+
+            # Accept connection
+            cli_socket, cli_address = signleStream.accept() # client_socket <-- send over this
+            clientSockets.append(cli_socket)
+            portsConnected[listPosition] = True
+            print(f'Connected stream on port: {portNumber}')
+
+            
+
+
+
+
+        # Calling threads
+        for i in range(0, len(portNumbers)): # for portNumber in portNumbers:
+            portsConnected.append(False)
+            transfer_thread = threading.Thread(target=waitForConnection, args=(portNumbers[i], i))
+            transfer_thread.start()
+        # Join threads
+        
+
+        # Function that checks if all ports are connected
+        def connectionFinished():
+            for connPort in portsConnected:
+                if connPort == False:
+                    return False
+            return True
+
+        # Wait for connection to finish (maybe use conditional variable later)
+        while not connectionFinished():
+            continue
+
+        print('All ports connected')
+
+        # Divide file into chunks and send over streams
+
+        # Function for thread that sends bytes
+        def sendBytesToStream(pos, data):
+            clientSockets[pos].sendall(data)
+
+        # Dividing the file and creating threads
+        file = open(filename, 'rb')
+        chunk = file.read(1000)
+        j = 0
+        k = 0
+        while chunk:
+            chunk = file.read(1000)
+            # bytesToSend = int.to_bytes(k) + chunk
+            bytesToSend = chunk
+            
+            sending_thread = threading.Thread(target=sendBytesToStream, args=(j, bytesToSend))
+            sending_thread.start()
+
+            k += 1
+            if j == len(clientSockets)-1:
+                j = 0
+            else:
+                j += 1
+        file.close()
+
+        # Closing connections
+        for cliSock in clientSockets:
+            cliSock.close()
+
+        # testing
+        print('sleeping')
+        time.sleep(1) 
 
         # # Read all bytes into variable
         # file = open(filename, 'rb')

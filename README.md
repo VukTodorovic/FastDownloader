@@ -39,7 +39,7 @@ where: <br />
 **K** is ordinal number of data chunk <br />
 **BYTES** is a chunk of bytes that is being transmitted
 - Client gets chunks of thata from server and writes them to a file in correct order. 
-- When the file is fully downloaded all sockets are closed and client program is terminated
+- When the file is fully downloaded all sockets are closed, ports are removed from free ports pool and client program is terminated
 
 ## Development notes
 - Server could send file using round robin algorithm but using threads only for *socket.sendall()* since it's a bloking function
@@ -59,3 +59,5 @@ where: <br />
 - Authentication ??
 - On Raspberry limited to 2GB because it is a 32bit operating system
 - 49152 to 65535 temporary port range
+- Do not forget to free used ports
+- First chunks is not sent

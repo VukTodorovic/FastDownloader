@@ -1,29 +1,10 @@
-import socket
-import time
+response = 'ACCEPTED 7 291693 54565 62468 52116 59646 52602 52603 52604'
 
-DEFAULT_BUFLEN = 1024
+responseValues = response.split(' ')
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind(('localhost', 3000))
-sock.listen(1)
+streamPorts = []
+for i in range(3, 3+int(responseValues[1])):
+    print(f'i: {i}')
+    streamPorts.append(int(responseValues[i]))
 
-print('Server is listening on port 3000...')
-
-connection, client_address = sock.accept()
-
-try:
-    print('connection from', client_address)
-
-    file = open('index.html', 'r')
-    html = file.read()
-    file.close()
-
-    data = connection.recv(DEFAULT_BUFLEN)
-    request = data.decode('utf-8')
-    print('Request: {}'.format(request))
-
-    response = f"HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: {len(html)}\n\n{html}"
-    connection.sendall(response.encode())
-finally:
-    time.sleep(3)
-    connection.close()
+print(f'response: {response}\nresponseValues: {responseValues}\nstreamPorts: {streamPorts}')
