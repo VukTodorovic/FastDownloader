@@ -1,6 +1,7 @@
 import socket
 import sys
 import threading
+from datetime import datetime
 
 DEFAULT_BUFLEN = 1024
 
@@ -41,6 +42,7 @@ for i in range(3, 3+int(responseValues[1])):
 
 # Funtion for thread
 k = int(responseValues[2])
+
 chunksRecieved = 0
 def connectToStream(portNumber):
     global chunksRecieved
@@ -61,22 +63,26 @@ def connectToStream(portNumber):
         # mutex.release()
 
     clientSocket.close() #testing
+    print(f'Socket on port {portNumber} has finished receiving')
 
 
 # Calling threads
 transferThreads = []
 print(f'Stream ports: {streamPorts}')
+startTime = datetime.now()
 for streamPort in streamPorts:
     transfer_thread = threading.Thread(target=connectToStream, args=(streamPort,))
     transfer_thread.start()
     transferThreads.append(transfer_thread)
+print(f'Active count: {threading.active_count()}')
 # Join threads
 for tr_thread in transferThreads:
     tr_thread.join()
 
-
-
-
+transferTime = datetime.now() - startTime
+print('--------------------------------')
+print(f'Transfer time: {transferTime}')
+print(f'Chunks received: {chunksRecieved}')
 
 # Close the connection
 sock.close()

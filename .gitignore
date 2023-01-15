@@ -1,8 +1,15 @@
-/server/south_park.mkv
-/server/test_slika.png
-/server/test.txt
-/server/CaleDoktorNauka.c
+/server/CaleDoktorNauka.c  
+/server/slika1.png         
+/server/gamefile.dll       
+/server/analiza2.pdf       
+/server/south_park.mkv      
 
-index.html
 test.py
 ORM1234.bmp
+
+
+# /server/CaleDoktorNauka.c   # 103 B
+# /server/slika1.png          # 5.1 MB
+# /server/gamefile.dll        # 32 MB
+# /server/analiza2.pdf        # 159 MB
+# /server/south_park.mkv      # 278 MB

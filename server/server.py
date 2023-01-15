@@ -3,10 +3,11 @@ import threading
 import sys
 import random
 import time
+from queue import Queue
 
 DEFAULT_BUFLEN = 1024
 MAX_CLIENTS = 10
-FILE_NAMES = ["test.txt", "CaleDoktorNauka.c", "test_slika.png", "south_park.mkv"]
+FILE_NAMES = ["CaleDoktorNauka.c", "slika1.png", "gamefile.dll", "analiza2.pdf", "south_park.mkv"]
 
 killSwitch = 0 # Just for testing
 usedPorts = []
@@ -77,6 +78,8 @@ def client_handler(client_socket, client_address):
         else: # >1GB
             socketAmount = 8
 
+        #socketAmount = 6 #OBRISATI
+
         # Make list of ports for data transfer
         portNumbers = []
         clientSockets = []
@@ -92,12 +95,10 @@ def client_handler(client_socket, client_address):
             response += ' ' + str(portNumber)
 
         client_socket.sendall(response.encode())
-        
-        # Listen on all ports for client to connect
-        portsConnected = []
+    
 
         # Funtion for thread
-        def waitForConnection(portNumber, listPosition):
+        def waitForConnection(portNumber):
             # Create a TCP/IP socket
             signleStream = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             streamAddress = ('localhost', portNumber)
@@ -108,42 +109,59 @@ def client_handler(client_socket, client_address):
             # Accept connection
             cli_socket, cli_address = signleStream.accept() # client_socket <-- send over this
             clientSockets.append(cli_socket)
-            portsConnected[listPosition] = True
             print(f'Connected stream on port: {portNumber}')
 
-            
 
-
-
-
+        transferThreads = []
         # Calling threads
-        for i in range(0, len(portNumbers)): # for portNumber in portNumbers:
-            portsConnected.append(False)
-            transfer_thread = threading.Thread(target=waitForConnection, args=(portNumbers[i], i))
+        for i in range(0, socketAmount):
+            transfer_thread = threading.Thread(target=waitForConnection, args=(portNumbers[i],))
             transfer_thread.start()
+            transferThreads.append(transfer_thread)
         # Join threads
-        
-
-        # Function that checks if all ports are connected
-        def connectionFinished():
-            for connPort in portsConnected:
-                if connPort == False:
-                    return False
-            return True
-
-        # Wait for connection to finish (maybe use conditional variable later)
-        while not connectionFinished():
-            continue
+        print(f'Active threads: {threading.enumerate()}')
+        for t in transferThreads:
+            t.join()
 
         print('All ports connected')
 
         # Divide file into chunks and send over streams
+        finished = False
+        chunk_queues = []
+        queue_max = []
+        for i in range(0, socketAmount):
+            q = Queue() # Set max size later
+            chunk_queues.append(q) 
+            queue_max.append(0)
 
         # Function for thread that sends bytes
-        def sendBytesToStream(pos, data):
-            clientSockets[pos].sendall(data)
+        def sendBytesToStream(pos):
+            x = 0
+            #print('1')
+            while((not finished) or (not chunk_queues[pos].empty())):
+                # if x == 0:
+                #     print('123')
+                #     x = 1
+                if not chunk_queues[pos].empty():
+                    if x == 0:
+                        print('123')
+                        x = 1
+                    next_chunk = chunk_queues[pos].get()
+                    clientSockets[pos].sendall(next_chunk)
+                    
+                
+        
+        # Create threads
+        max_thread_count = 0
+        sendingThreads = []
+        for i in range(0, socketAmount):
+            sending_thread = threading.Thread(target=sendBytesToStream, args=(i,))
+            sending_thread.start()
+            sendingThreads.append(sending_thread)
+        print(f'Active threads: {threading.enumerate()}')
 
-        # Dividing the file and creating threads
+
+        # Dividing the file and filling the queues
         file = open(filename, 'rb')
         chunk = file.read(1000)
         j = 0
@@ -153,28 +171,43 @@ def client_handler(client_socket, client_address):
             # bytesToSend = int.to_bytes(k) + chunk
             bytesToSend = chunk
             
-            sending_thread = threading.Thread(target=sendBytesToStream, args=(j, bytesToSend))
-            sending_thread.start()
+            # clientSockets[j].sendall(bytesToSend)
+            chunk_queues[j].put(bytesToSend)
+
+            qsize = chunk_queues[j].qsize()
+            if(qsize > queue_max[j]):
+                queue_max[j] = qsize
+
+            tcsize = threading.active_count()
+            if(tcsize > max_thread_count):
+                max_thread_count = tcsize
 
             k += 1
-            if j == len(clientSockets)-1:
+            if j == socketAmount-1:
                 j = 0
             else:
                 j += 1
         file.close()
+        finished = True
 
         # Closing connections
         for cliSock in clientSockets:
             cliSock.close()
 
         # testing
-        print('sleeping')
-        time.sleep(1) 
 
-        # # Read all bytes into variable
-        # file = open(filename, 'rb')
-        # fileBytes = file.read()
-        # file.close()
+
+        print('done')
+        print('--------------------------------')
+        for qm in queue_max:
+            print(f'Queue max: {qm}')
+        
+        print('--------------------------------')
+        for cq in chunk_queues:
+            print(f'Queue size: {cq.qsize()}')
+
+        print('--------------------------------')
+        print(f'Max tread count: {max_thread_count}')   
     
 
 
