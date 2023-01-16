@@ -55,11 +55,13 @@ def connectToStream(portNumber):
     # Client gets chunks of data and writes them to a file
     while(chunksRecieved < k):
         resp = clientSocket.recv(DEFAULT_BUFLEN)
-        # print(f'[!]Server response on port{portNumber}: {resp}')
+        print(f'[!]Server response on port{portNumber}: {resp}')
+        if resp == b'':
+            sys.exit()
         # mutex = threading.Lock()
         # mutex.acquire()
         chunksRecieved += 1
-        print(f'chunksRecieved: {chunksRecieved}')
+        # print(f'chunksRecieved: {chunksRecieved}')
         # mutex.release()
 
     clientSocket.close() #testing

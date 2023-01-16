@@ -60,4 +60,4 @@ where: <br />
 - On Raspberry limited to 2GB because it is a 32bit operating system
 - 49152 to 65535 temporary port range
 - Do not forget to free used ports
-- First chunks is not sent
+- Server should check if port is used by some system process before using it for transfer

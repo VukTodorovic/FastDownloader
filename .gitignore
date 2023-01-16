@@ -1,15 +1,10 @@
-/server/CaleDoktorNauka.c  
-/server/slika1.png         
-/server/gamefile.dll       
-/server/analiza2.pdf       
-/server/south_park.mkv      
-
+/server/files/*      
 test.py
 ORM1234.bmp
 
 
-# /server/CaleDoktorNauka.c   # 103 B
-# /server/slika1.png          # 5.1 MB
-# /server/gamefile.dll        # 32 MB
-# /server/analiza2.pdf        # 159 MB
-# /server/south_park.mkv      # 278 MB
+# CaleDoktorNauka.c   # 103 B
+# slika1.png          # 5.1 MB
+# gamefile.dll        # 32  MB
+# analiza2.pdf        # 159 MB
+# south_park.mkv      # 278 MB

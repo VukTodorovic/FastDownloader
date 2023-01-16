@@ -48,7 +48,7 @@ def client_handler(client_socket, client_address):
         
     else:
         # Calculate file size
-        file = open(filename, 'rb')
+        file = open('./files/' + filename, 'rb')
         fileSize = 0
         chunk = file.read(1024)
         while chunk:
@@ -119,70 +119,74 @@ def client_handler(client_socket, client_address):
             transfer_thread.start()
             transferThreads.append(transfer_thread)
         # Join threads
-        print(f'Active threads: {threading.enumerate()}')
+        # print(f'Active threads: {threading.enumerate()}')
         for t in transferThreads:
             t.join()
 
         print('All ports connected')
 
-        # Divide file into chunks and send over streams
+        # Initialize queues and variables for sending
         finished = False
         chunk_queues = []
-        queue_max = []
         for i in range(0, socketAmount):
             q = Queue() # Set max size later
             chunk_queues.append(q) 
-            queue_max.append(0)
+        chunks_sent = []    # Testing queued chunks
+        for pn in portNumbers:
+            chunks_sent.append(0)
+
+
 
         # Function for thread that sends bytes
         def sendBytesToStream(pos):
-            x = 0
-            #print('1')
             while((not finished) or (not chunk_queues[pos].empty())):
-                # if x == 0:
-                #     print('123')
-                #     x = 1
                 if not chunk_queues[pos].empty():
-                    if x == 0:
-                        print('123')
-                        x = 1
                     next_chunk = chunk_queues[pos].get()
-                    clientSockets[pos].sendall(next_chunk)
-                    
+                    try:
+                        clientSockets[pos].sendall(next_chunk)
+                        print(f'[*]Chunk success: {pos}')
+                        chunks_sent[pos] += 1
+                        # time.sleep(0.1)
+                    except Exception as e:
+                        print(f'[!]Chunk failed: {pos}')
+                        time.sleep(2)
+                        sys.exit()
+                else:
+                    time.sleep(0.1)
+                    print(123)
+
                 
         
         # Create threads
-        max_thread_count = 0
         sendingThreads = []
         for i in range(0, socketAmount):
             sending_thread = threading.Thread(target=sendBytesToStream, args=(i,))
             sending_thread.start()
             sendingThreads.append(sending_thread)
-        print(f'Active threads: {threading.enumerate()}')
+        # print(f'Active threads: {threading.enumerate()}')
 
 
         # Dividing the file and filling the queues
-        file = open(filename, 'rb')
-        chunk = file.read(1000)
+        file = open('./files/' + filename, 'rb')
         j = 0
         k = 0
-        while chunk:
+
+        chunks_queued = []    # Testing queued chunks
+        for pn in portNumbers:
+            chunks_queued.append(0)
+
+        firstTime = True
+        while chunk or firstTime:
+            if firstTime:
+                firstTime = False
             chunk = file.read(1000)
             # bytesToSend = int.to_bytes(k) + chunk
             bytesToSend = chunk
             
-            # clientSockets[j].sendall(bytesToSend)
             chunk_queues[j].put(bytesToSend)
 
-            qsize = chunk_queues[j].qsize()
-            if(qsize > queue_max[j]):
-                queue_max[j] = qsize
-
-            tcsize = threading.active_count()
-            if(tcsize > max_thread_count):
-                max_thread_count = tcsize
-
             k += 1
+            chunks_queued[j] += 1
             if j == socketAmount-1:
                 j = 0
             else:
@@ -198,16 +202,20 @@ def client_handler(client_socket, client_address):
 
 
         print('done')
+
         print('--------------------------------')
-        for qm in queue_max:
-            print(f'Queue max: {qm}')
+        for chq in chunks_queued:
+            print(f'Chunks queued: {chq}')
+
+        print('--------------------------------')
+        for cs in chunks_sent:
+            print(f'Chunks sent: {cs}')
         
         print('--------------------------------')
         for cq in chunk_queues:
-            print(f'Queue size: {cq.qsize()}')
+            print(f'Queue size: {cq.qsize()}, Empty: {cq.empty()}') 
 
-        print('--------------------------------')
-        print(f'Max tread count: {max_thread_count}')   
+        
     
 
 
