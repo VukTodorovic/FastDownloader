@@ -26,11 +26,11 @@ sock.sendall(fileName.encode())
 
 # Receive and print the response from the server
 response = sock.recv(DEFAULT_BUFLEN).decode()
-print(f'Server response:\n{response}')
+print(f'Server response: {response}')
 responseValues = response.split(' ')
 
 # If file doesn't exist on server
-if response == 'Wrong input':
+if response == 'WRONG_INPUT':
     sock.close()
     sys.exit()
 
@@ -55,7 +55,13 @@ def connectToStream(portNumber):
     # Client gets chunks of data and writes them to a file
     while(chunksRecieved < k):
         resp = clientSocket.recv(DEFAULT_BUFLEN)
-        print(f'[!]Server response on port{portNumber}: {resp}')
+        # print('--------------------------------')
+        # print(f'[!]Server response on port {portNumber}: {resp}')
+        response_parts = resp.split(b' ')
+        # num = int(response_parts[0].decode())
+        # num = response_parts[0].decode('utf-8')
+        # print(num)
+        # bytes = result_parts[1]
         if resp == b'':
             sys.exit()
         # mutex = threading.Lock()
@@ -70,13 +76,11 @@ def connectToStream(portNumber):
 
 # Calling threads
 transferThreads = []
-print(f'Stream ports: {streamPorts}')
 startTime = datetime.now()
 for streamPort in streamPorts:
     transfer_thread = threading.Thread(target=connectToStream, args=(streamPort,))
     transfer_thread.start()
     transferThreads.append(transfer_thread)
-print(f'Active count: {threading.active_count()}')
 # Join threads
 for tr_thread in transferThreads:
     tr_thread.join()
@@ -84,7 +88,9 @@ for tr_thread in transferThreads:
 transferTime = datetime.now() - startTime
 print('--------------------------------')
 print(f'Transfer time: {transferTime}')
+print(f'Chunks expected: {k}')
 print(f'Chunks received: {chunksRecieved}')
+print(f'File size: {(chunksRecieved/1024)} KB')
 
 # Close the connection
 sock.close()

@@ -4,8 +4,10 @@ import sys
 import random
 import time
 from queue import Queue
+import concurrent.futures
 
 DEFAULT_BUFLEN = 1024
+CHUNK_SIZE = 1000
 MAX_CLIENTS = 10
 FILE_NAMES = ["CaleDoktorNauka.c", "slika1.png", "gamefile.dll", "analiza2.pdf", "south_park.mkv"]
 
@@ -50,14 +52,15 @@ def client_handler(client_socket, client_address):
         # Calculate file size
         file = open('./files/' + filename, 'rb')
         fileSize = 0
-        chunk = file.read(1024)
-        while chunk:
+        while True:
+            chunk = file.read(CHUNK_SIZE)
+            if not chunk:
+                break
             fileSize += len(chunk)
-            chunk = file.read(1024)
         file.close()
         
         # Calculate number of data chunks (M)
-        chunkAmount = int(fileSize / 1000) + 1
+        chunkAmount = int(fileSize / CHUNK_SIZE) + 1 
 
         # Calculate number of sockets (N)
         socketAmount = 0
@@ -76,9 +79,9 @@ def client_handler(client_socket, client_address):
         elif fileSize < 1000*1024*1024: # <1GB
             socketAmount = 7
         else: # >1GB
-            socketAmount = 8
+            socketAmount = 6
 
-        #socketAmount = 6 #OBRISATI
+        # socketAmount = 8 #OBRISATI
 
         # Make list of ports for data transfer
         portNumbers = []
@@ -125,95 +128,46 @@ def client_handler(client_socket, client_address):
 
         print('All ports connected')
 
-        # Initialize queues and variables for sending
-        finished = False
-        chunk_queues = []
-        for i in range(0, socketAmount):
-            q = Queue() # Set max size later
-            chunk_queues.append(q) 
-        chunks_sent = []    # Testing queued chunks
-        for pn in portNumbers:
-            chunks_sent.append(0)
-
-
 
         # Function for thread that sends bytes
-        def sendBytesToStream(pos):
-            while((not finished) or (not chunk_queues[pos].empty())):
-                if not chunk_queues[pos].empty():
-                    next_chunk = chunk_queues[pos].get()
-                    try:
-                        clientSockets[pos].sendall(next_chunk)
-                        print(f'[*]Chunk success: {pos}')
-                        chunks_sent[pos] += 1
-                        # time.sleep(0.1)
-                    except Exception as e:
-                        print(f'[!]Chunk failed: {pos}')
-                        time.sleep(2)
-                        sys.exit()
-                else:
-                    time.sleep(0.1)
-                    print(123)
-
+        flag = True
+        def sendBytesToStream(data, s):
+            s.sendall(data)
+            # print(data)
                 
-        
-        # Create threads
-        sendingThreads = []
-        for i in range(0, socketAmount):
-            sending_thread = threading.Thread(target=sendBytesToStream, args=(i,))
-            sending_thread.start()
-            sendingThreads.append(sending_thread)
-        # print(f'Active threads: {threading.enumerate()}')
 
 
-        # Dividing the file and filling the queues
+        # Dividing the file and sending them over sockets using thread pool
         file = open('./files/' + filename, 'rb')
         j = 0
         k = 0
 
-        chunks_queued = []    # Testing queued chunks
-        for pn in portNumbers:
-            chunks_queued.append(0)
+        with concurrent.futures.ThreadPoolExecutor(max_workers = socketAmount) as executor: # ThreadPoolExecutor will make maximum of N threads and queue other tasks
+            while True:
+                chunk = file.read(CHUNK_SIZE)
+                if not chunk:
+                    break
 
-        firstTime = True
-        while chunk or firstTime:
-            if firstTime:
-                firstTime = False
-            chunk = file.read(1000)
-            # bytesToSend = int.to_bytes(k) + chunk
-            bytesToSend = chunk
-            
-            chunk_queues[j].put(bytesToSend)
+                bytesToSend = str(k).encode('utf-8')
+                s = clientSockets[j]
+                executor.submit(sendBytesToStream, chunk, s)
 
-            k += 1
-            chunks_queued[j] += 1
-            if j == socketAmount-1:
-                j = 0
-            else:
-                j += 1
+                k += 1
+                if j == socketAmount-1:
+                    j = 0
+                else:
+                    j += 1
+
         file.close()
-        finished = True
 
         # Closing connections
         for cliSock in clientSockets:
             cliSock.close()
 
-        # testing
-
 
         print('done')
-
         print('--------------------------------')
-        for chq in chunks_queued:
-            print(f'Chunks queued: {chq}')
-
-        print('--------------------------------')
-        for cs in chunks_sent:
-            print(f'Chunks sent: {cs}')
-        
-        print('--------------------------------')
-        for cq in chunk_queues:
-            print(f'Queue size: {cq.qsize()}, Empty: {cq.empty()}') 
+        print(f'Chunks sent: {k}') 
 
         
     
