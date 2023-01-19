@@ -61,3 +61,4 @@ where: <br />
 - 49152 to 65535 temporary port range
 - Do not forget to free used ports
 - Server should check if port is used by some system process before using it for transfer
+- Check queue size of tasks

@@ -1,10 +1,13 @@
-/server/files/*      
+/server/files/*    
+/client/files/*   
 test.py
 ORM1234.bmp
+*/ordinals.txt
 
 
 # CaleDoktorNauka.c   # 103 B
 # slika1.png          # 5.1 MB
-# gamefile.dll        # 32  MB
+# PDF45.pdf           # 45 MB
+# PDF60.pdf           # 60 MB
 # analiza2.pdf        # 159 MB
 # south_park.mkv      # 278 MB

@@ -6,10 +6,10 @@ import time
 from queue import Queue
 import concurrent.futures
 
-DEFAULT_BUFLEN = 1024
+DEFAULT_BUFLEN = 1400
 CHUNK_SIZE = 1000
 MAX_CLIENTS = 10
-FILE_NAMES = ["CaleDoktorNauka.c", "slika1.png", "gamefile.dll", "analiza2.pdf", "south_park.mkv"]
+FILE_NAMES = ["CaleDoktorNauka.c", "slika1.png", "slika33.jpg", "PDF45.pdf", "PDF60.pdf", "analiza2.pdf", "south_park.mkv"]
 
 killSwitch = 0 # Just for testing
 usedPorts = []
@@ -133,9 +133,8 @@ def client_handler(client_socket, client_address):
         flag = True
         def sendBytesToStream(data, s):
             s.sendall(data)
-            # print(data)
                 
-
+        
 
         # Dividing the file and sending them over sockets using thread pool
         file = open('./files/' + filename, 'rb')
@@ -143,14 +142,22 @@ def client_handler(client_socket, client_address):
         k = 0
 
         with concurrent.futures.ThreadPoolExecutor(max_workers = socketAmount) as executor: # ThreadPoolExecutor will make maximum of N threads and queue other tasks
+            # bulean = True
             while True:
                 chunk = file.read(CHUNK_SIZE)
                 if not chunk:
                     break
+                
+                # K BYTES PADDING
+                K = str(k).encode('utf-8')
+                # P_L_num = DEFAULT_BUFLEN - len(b' ')*3 - CHUNK_SIZE - len(K)
+                # P_L_num -= len(str(P_L_num).encode('utf-8'))
+                # P_L = str(P_L_num).encode('utf-8')
+                bytesToSend = K + b'$SEPARATOR$' + chunk + b'$SEPARATOR$'
+                padded_bytes = bytesToSend.ljust(DEFAULT_BUFLEN, b'0')
 
-                bytesToSend = str(k).encode('utf-8')
                 s = clientSockets[j]
-                executor.submit(sendBytesToStream, chunk, s)
+                executor.submit(sendBytesToStream, padded_bytes, s)
 
                 k += 1
                 if j == socketAmount-1:
