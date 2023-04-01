@@ -42,7 +42,6 @@ where: <br />
 - When the file is fully downloaded all sockets are closed, ports are removed from free ports pool and client program is terminated
 
 ## Development notes
-- Server could send file using round robin algorithm but using threads only for *socket.sendall()* since it's a bloking function
 - Formula: M = size_in_bytes / 1000 + 1
 - Num of streams: 1 - 8
 - Calculate num of streams:
@@ -59,6 +58,3 @@ where: <br />
 - Authentication ??
 - On Raspberry limited to 2GB because it is a 32bit operating system
 - 49152 to 65535 temporary port range
-- Do not forget to free used ports
-- Server should check if port is used by some system process before using it for transfer
-- Check queue size of tasks
